@@ -1,0 +1,16 @@
+{% extends 'master.html' %}
+
+{% block content %}
+<h1>{% block title %}OAuth Stuff{% endblock %}</h1>
+
+<ul>
+{% for contact in contacts.entry %}
+     <li>
+         <strong>{{ contact.title.text }}: </strong>
+         {% for email in contact.email %}
+            {{ email.address }},
+         {% endfor %}
+     </li>
+{% endfor %}
+</ul>
+{% endblock %}

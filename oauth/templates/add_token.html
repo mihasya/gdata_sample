@@ -1,0 +1,20 @@
+{% extends 'master.html' %}
+
+
+{% block content %}
+    <h1>{% block title %}Adding a Google Account{% endblock %}</h1>
+    {% if goog_url %}
+    <p>
+        In order to use OAuth, the user (you in this case) has to give authorization. Click the link below
+        to go to Google's OAuth authorization page.
+    </p>
+        
+    <p>
+        <a href="{{ goog_url }}">Go to Google to authorize access</a>
+    {% else %}
+    <p>Awesome! We will now be able to keep your Google Calendar up to date
+        using your Google Address Book</p>
+    {% endif %}
+    
+    {{ token }}
+{% endblock %}

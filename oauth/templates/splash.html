@@ -1,0 +1,26 @@
+{% extends 'master.html' %}
+
+{% block content %}
+<h1>{% block title %}OAuth Sample{% endblock %}</h1>
+
+<p>Welcome to the Gdata OAuth sample. The goal of this app is to show how easy it
+    is to use the Google Data API's using the OAuth mechanism.</p>
+    
+<p>In order for this to work, you have to signup for a username.</p>
+
+<div class="yui-g">
+    <div class="yui-u first">
+        <form action="/oauth/" method="post">
+        {{ signup_form.as_p }}
+        <input type="submit" name="signup" value="Sign Up"/>
+        </form>
+    </div>
+    <div class="yui-u">
+        <form action="/oauth/" method="post">
+        {{ login_form.as_p }}
+        <input type="submit" name="login" value="Sign Up"/>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
