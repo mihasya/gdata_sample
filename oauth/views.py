@@ -16,7 +16,7 @@ import gdata.base.service
 import gdata.calendar.service
 import gdata.contacts.service
 
-import cPickle
+import cPickle as Pickle
 
 def index(r):
     if (r.user.is_authenticated()):
@@ -63,10 +63,11 @@ def splash(request):
 
 @login_required
 def home(request):
-    token_data = GoogleAccount.objects.filter(user = request.user).order_by('-ctime')
-    if token_data:
-        token_data = token_data[0]
-        token = cPickle.loads(str(token_data.data))
+    token_search = GoogleAccount.objects.filter(user = request.user)\
+        .order_by('-ctime')
+    if token_search:
+        token_db_object = token_search[0]
+        token = Pickle.loads(str(token_db_object.data))
         client = gdata.contacts.service.ContactsService()
 
         client.SetOAuthInputParameters(
@@ -77,7 +78,7 @@ def home(request):
         )
         token.oauth_input_params = client._oauth_input_params
         client.SetOAuthToken(token)
-        feed_uri = 'https://www.google.com/m8/feeds/contacts/default/full'\
+        feed_uri = 'https://www.google.com'+client.GetFeedUri()\
                 +'?start-index=1&max-results=10'
         
         contacts = client.GetContactsFeed(feed_uri)
@@ -109,7 +110,7 @@ def add_token(request):
         rt = gd_client.FetchOAuthRequestToken(
             scopes=cp_scope
         )
-        #store the token's secret in a session variable (or anywhere it can be retrieved later)
+        #store the token's secret in a session variable
         request.session['token_secret'] = rt.secret
         
         #get an authorization URL for our token from gdata
@@ -131,19 +132,21 @@ def add_token(request):
         rt.secret = request.session['token_secret']
         #set the scope again
         rt.scopes = cp_scope;
-        #upgrade our request token to an authorized access token (where the money at)
+        #upgrade our request token to an access token (where the money at)
         gd_client.UpgradeToOAuthAccessToken(authorized_request_token=rt)
-        #this part is confusing: we have to retrieve the authorized access token by doing a lookup
-        #I have submitted an issue and a patch to the Python client to make
-        #UpgradeToOAuthAccessToken return the authorized token
-        #see: http://code.google.com/p/gdata-python-client/issues/detail?id=213
+        """this part is confusing: we have to retrieve the authorized access 
+        token by doing a lookup I have submitted an issue and a patch to the 
+        Python client to make UpgradeToOAuthAccessToken return the authorized 
+        token see: 
+        http://code.google.com/p/gdata-python-client/issues/detail?id=213"""
         at = gd_client.token_store.find_token(rt.scopes[0])
-        #save! how you store the data is arbitrary. I just pickle the token object, though you could probably
-        #store the token_key and token_secret individually and reconstruct the object later. I prefer pickling
-        #because it's a snap to get a functioning token back (see views.home)
-        ga = GoogleAccount()
+        """save! how you store the data is arbitrary. I just pickle the token 
+        object, though you could probably store the token_key and token_secret 
+        individually and reconstruct the object later. (see views.home)"""
+        ga = GoogleAccount() #my model
         ga.user = request.user
-        ga.data = cPickle.dumps(at)
+        ga.data = Pickle.dumps(at)
         ga.save()
-        request.user.message_set.create(message="Your Google account has been successfully added.")
+        request.user.message_set.create(message="Your Google account has been "+
+            "successfully added.")
         return HttpResponseRedirect('/oauth')
